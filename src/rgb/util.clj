@@ -1,15 +1,17 @@
 (ns rgb.util
   (:require [clojure.java.io :as io]
-            [clojure.pprint :refer [cl-format]]))
+            [clojure.pprint :refer [cl-format]])
+  (:import [java.io File]))
+
+(set! *warn-on-reflection* true)
+
+
+(defn round-double [^Double x]
+  (Double. ^String (cl-format nil "~,2f" x)))
 
 
 
-(defn round-double [x]
-  (Double. (cl-format nil "~,2f" x)))
-
-
-
-(defn normalize-path [path]
+(defn normalize-path [^String path]
   (-> (.replaceFirst path "^~" (System/getProperty "user.home"))
       io/file
       .getCanonicalPath))
@@ -44,7 +46,7 @@
 (defn list-dirs [path]
   (->> (io/file path)
        (.listFiles)
-       (filter #(.isDirectory %))))
+       (filter #(.isDirectory ^File %))))
 
 
 

@@ -24,6 +24,4 @@
            :basis basis
            :main 'rgb.ui})
 
-  (println "done!")
-  ;;(javafx.application.Platform/exit)
-  )
+  (println "done!"))

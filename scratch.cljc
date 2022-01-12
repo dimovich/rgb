@@ -389,9 +389,35 @@
 
 
 
-;; AOT
-;; :jvm-opts ["-Dcljfx.skip-javafx-initialization=true"] 
+
 
 (set! *warn-on-reflection* false)
 
 
+(require [clojure.tools.build.api :as b])
+
+(b/compile-clj {:basis basis :src-dirs ["../gits/cljfx/src"] :class-dir class-dir})
+
+
+
+
+
+
+
+;; AOT
+;; :jvm-opts ["-Dcljfx.skip-javafx-initialization=true"]
+
+
+;; https://docs.gluonhq.com/#_gluonfx_plugin_for_maven
+
+;; try running the jar on both computers
+;;  -- compile against java8
+;;  -- download jre11
+;;  -- jlink
+;; send pull request for cljfx cell-factory
+;; try compiling on a VPS
+;; clj-easy, how to use the :native alias (read until the end)
+
+;; https://old.reddit.com/r/Clojure/comments/fw93gc/new_clojurians_ask_anything/fmvnq4q/
+
+;; /home/dimovich/.sdkman/candidates/java/current/bin/java

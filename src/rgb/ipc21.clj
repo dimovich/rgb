@@ -6,11 +6,13 @@
             [clj-time.coerce :as ctc]
             [clj-time.format :as ctf]
             [rgb.util :as u])
-  (:import [com.linuxense.javadbf DBFReader])
+  (:import [com.linuxense.javadbf DBFReader DBFRow]
+           [java.io File])
 
   (:gen-class))
 
 
+(set! *warn-on-reflection* true)
 
 
 (def s795-path "ARM_02/S795.DBF")
@@ -24,11 +26,11 @@
 
 
 
-(def get-string #(.getString %1 %2))
-(def get-double #(.getDouble %1 %2))
-(def get-int #(.getInt %1 %2))
+(def get-string #(.getString ^DBFRow %1 ^String %2))
+(def get-double #(.getDouble ^DBFRow %1 ^String %2))
+(def get-int #(.getInt ^DBFRow %1 ^String %2))
 (def get-date
-  #(-> (.getDate %1 %2)
+  #(-> (.getDate ^DBFRow %1 ^String %2)
        ctc/from-date
        (ct/from-time-zone (ct/time-zone-for-offset -3))))
 
@@ -225,7 +227,7 @@
         sum-am (u/round-double (* 0.09 sum-payed))
 
         division-impozit (sum-division-impozit ents)
-        sum-impozit (reduce + (vals division-impozit))]
+        sum-impozit (u/round-double (reduce + (vals division-impozit)))]
     
     [:dec {"TypeName" "IPC21"}
      [:fiscCod
@@ -404,7 +406,7 @@
         
         config (-> (read-company-config month-dir)
                    (assoc :period (path-period
-                                   (.getName month-dir))))
+                                   (.getName ^File month-dir))))
 
         output-file (or out (io/file month-dir
                                      default-output-path))]

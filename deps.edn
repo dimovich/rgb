@@ -3,14 +3,22 @@
         com.github.albfernandez/javadbf {:mvn/version "1.13.2"}
         hiccup/hiccup {:mvn/version "1.0.5"}
         clj-time/clj-time {:mvn/version "0.15.2"}
-        cljfx/cljfx {:mvn/version "1.7.16"}
-        clj-htmltopdf/clj-htmltopdf {:mvn/version "0.2"}}
+        cljfx/cljfx {:mvn/version "1.7.17"
+                     :exclusions [org.openjfx/javafx-media
+                                  org.openjfx/javafx-web]}
+        org.openjfx/javafx-base$win {:mvn/version "17.0.0.1"}
+        org.openjfx/javafx-controls$win {:mvn/version "17.0.0.1"}
+        org.openjfx/javafx-graphics$win {:mvn/version "17.0.0.1"}
+        clj-htmltopdf/clj-htmltopdf {:mvn/version "0.2"
+                                     :exclusions [;;com.openhtmltopdf/openhtmltopdf-svg-support
+                                                  com.openhtmltopdf/openhtmltopdf-rtl-support
+                                                  org.apache.xmlgraphics/batik-codec
+                                                  org.apache.xmlgraphics/batik-ext]}}
 
  :aliases
- {:uberjar {:replace-deps {com.github.seancorfield/depstar {:mvn/version "2.1.303"}}
-            :exec-fn hf.depstar/uberjar
-            :exec-args {:aot true}
-            :jvm-opts ["-Dcljfx.skip-javafx-initialization=true"]}
+ {:build {:deps {io.github.clojure/tools.build { ;;:git/tag "v0.7.5" :git/sha "34727f7"
+                                                :local/root "../gits/tools.build"}}
+          :ns-default build}
 
-  :build {:deps {io.github.clojure/tools.build {:git/tag "v0.7.5" :git/sha "34727f7"}}
-          :ns-default build}}}
+  :native {:deps {com.github.clj-easy/graal-build-time {:mvn/version "0.1.4"}}
+           :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}}}

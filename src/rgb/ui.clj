@@ -6,8 +6,13 @@
             [rgb.ipc21 :as ipc21]
             [rgb.creditori :as rc])
 
+  (:import [java.io File]
+           [javafx.scene.control ListView]
+           [javafx.scene.input MouseEvent])
+
   (:gen-class))
 
+(set! *warn-on-reflection* true)
 
 
 (defonce *state (atom nil))
@@ -55,7 +60,7 @@
                    (rc/gen month-dir)
                    (alert "Documentul a fost creat."))})
 
-      (.exists output-file)
+      (.exists ^File output-file)
       (conj {:text "Deschidere"
              :fn (fn []
                    (u/open-explorer output-file))}))))
@@ -73,45 +78,46 @@
 
 (defn home-screen-items [paths]
   (->> (mapcat u/list-dirs paths)
-       (filter #(re-find #"^\d+_\d+$" (.getName %)))
-       (sort-by #(.getName %))
+       (filter #(re-find #"^\d+_\d+$" (.getName ^File %)))
+       (sort-by #(.getName ^File %))
        (reverse)
        (mapv (fn [dir]
                {:children-fn #(default-screen-items dir)
-                :text (.getName dir)}))))
+                :text (.getName ^File dir)}))))
 
 
 
 
 
-(defn handler [event]
-  (let [{:keys [event/type]} event]
+(defn handler [ev]
+  (let [{:keys [event/type]} ev]
     (case type
       ::list-click
-      (when (< 1 (.getClickCount (:fx/event event)))
-        (let [idx (.. (:fx/event event)
-                      getSource getSelectionModel getSelectedIndex)]
+      (let [event ^MouseEvent (:fx/event ev)]
+        (when (< 1 (.getClickCount event))
+          (let [target ^ListView (.getSource event)
+                idx (.. target getSelectionModel getSelectedIndex)]
           
-          (swap! *state update :screen-stack
-                 (fn [stack]
-                   (let [current (peek stack)
-                         item (get (:children current) idx)]
-                     ;; run action
-                     (if (:fn item)
-                       (do
-                         ((:fn item))
-                         ;; refresh menu
-                         (conj (pop stack)
-                               (assoc current :children
-                                      ((:children-fn current)))))
-                       ;; switch menu
-                       (if-let [cf (:children-fn item)]
-                         (conj stack (assoc item :children (cf)))
-                         stack)))))))
+            (swap! *state update :screen-stack
+                   (fn [stack]
+                     (let [current (peek stack)
+                           item (get (:children current) idx)]
+                       ;; run action
+                       (if (:fn item)
+                         (do
+                           ((:fn item))
+                           ;; refresh menu
+                           (conj (pop stack)
+                                 (assoc current :children
+                                        ((:children-fn current)))))
+                         ;; switch menu
+                         (if-let [cf (:children-fn item)]
+                           (conj stack (assoc item :children (cf)))
+                           stack))))))))
       
 
       ::screen-stack-click
-      (swap! *state update :screen-stack subvec 0 (inc (:idx event))))))
+      (swap! *state update :screen-stack subvec 0 (inc (:idx ev))))))
 
 
 

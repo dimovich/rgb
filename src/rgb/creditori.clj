@@ -4,8 +4,11 @@
             [clj-htmltopdf.core :as hp]
             [hiccup.page :refer [html5]]
             [rgb.util :as u])
-  (:import [com.linuxense.javadbf DBFReader]))
+  (:import [com.linuxense.javadbf DBFReader]
+           [java.io File]))
 
+
+(set! *warn-on-reflection* true)
 
 
 (defn read-entities [fname]
@@ -45,7 +48,7 @@
 
 (def output-path-ptrn "ARM_10/RGB/Creditori_%s.pdf")
 
-(defn get-output-file [month-dir]
+(defn get-output-file [^File month-dir]
   (->> (format output-path-ptrn (.getName month-dir))
        (io/file month-dir)))
 
