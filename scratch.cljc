@@ -411,8 +411,7 @@
 ;; https://docs.gluonhq.com/#_gluonfx_plugin_for_maven
 
 ;; try running the jar on both computers
-;;  -- compile against java8
-;;  -- download jre11
+;;  -- compile against java8 [DONE]
 ;;  -- jlink
 ;; send pull request for cljfx cell-factory
 ;; try compiling on a VPS
