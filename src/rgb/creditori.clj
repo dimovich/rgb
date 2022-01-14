@@ -58,8 +58,11 @@
   (->> data
        (map
         (fn [[company sum]]
-          [:h3 {:style (str "border-bottom: 1px dotted gray;"
+          [:h3 {:style (str "font-family: serif;"
+                            "border-bottom: 1px dotted gray;"
                             "width: 24em;"
+                            "font-size: 18px;"
+                            "font-weight: normal;"
                             "white-space:nowrap")}
            [:span {:style (str "width: 17em;"
                                "text-overflow: ellipsis;"
@@ -69,10 +72,12 @@
             company]
            (let [[whole decimal] (clojure.string/split (str sum) #"\.")]
              [:span {:style (str "width: 7em;"
+                                 "overflow: visible;"
+                                 "font-size: 17px;"
                                  "text-align: right;"
                                  "display: inline-block")}
               whole
-              [:span {:style (str "font-size: 67%;"
+              [:span {:style (str "font-size: 12px;"
                                   "color: gray")}
                (if (zero? (mod sum 1))
                  [:span {:style "visibility: hidden"} ",00"]
@@ -91,7 +96,9 @@
             [:body
              (->> (read-entities2 (io/file month-dir s757b-path))
                   (gen-markup))])
-     output-file)))
+     output-file
+     {:styles {:fonts [{:font-family "consola"
+                        :src "resources/fonts/consola.ttf"}]}})))
 
 
 
@@ -106,8 +113,10 @@
 
 
 ;; clojure -X:uberjar :jar creditori.jar :main-class rgb.creditori
-
 ;; java -jar creditori.jar "/run/user/1000/gvfs/smb-share:server=agroialserver,share=serverd/Bux2015/2021_07"
-
 ;; java -jar creditori.jar ./data/creditori
 
+
+
+;; cli version
+;; rgb.jar --creditori (folder | file) output.pdf

@@ -8,7 +8,7 @@
 
   (:import [java.io File]
            [javafx.scene.control ListView]
-           [javafx.scene.input MouseEvent])
+           [javafx.scene.input MouseEvent KeyEvent KeyCode])
 
   (:gen-class))
 
@@ -87,37 +87,67 @@
 
 
 
+(defn handle-forward [idx]
+  (swap! *state update :screen-stack
+         (fn [stack]
+           (let [current (peek stack)
+                 item (get (:children current) idx)]
+             ;; run action
+             (if (:fn item)
+               (do
+                 ((:fn item))
+                 ;; refresh menu
+                 (conj (pop stack)
+                       (assoc current :children
+                              ((:children-fn current)))))
+               ;; switch menu
+               (if-let [cf (:children-fn item)]
+                 (let [children (cf)]
+                   (conj stack (assoc item :children
+                                      (->> children
+                                           (remove #(when-let [cf2 (:children-fn %)]
+                                                      (empty? (cf2))))
+                                           vec))))
+                 stack))))))
+
+
+
+(defn handle-back [idx]
+  (swap! *state update :screen-stack
+         (fn [stack]
+           (if (neg? idx)
+             (if (< 1 (count stack))
+               (pop stack)
+               stack)
+             (subvec stack 0 idx)))))
+
 
 
 (defn handler [ev]
   (let [{:keys [event/type]} ev]
     (case type
+      ::list-key
+      (let [event ^KeyEvent (:fx/event ev)
+            code (.getCode event)]
+        (cond
+          (= code KeyCode/ENTER)
+          (let [target ^ListView (.getSource event)
+                idx (.. target getSelectionModel getSelectedIndex)]
+            (handle-forward idx))
+
+          (#{KeyCode/LEFT KeyCode/BACK_SPACE} code)
+          (handle-back -1)))
+      
       ::list-click
       (let [event ^MouseEvent (:fx/event ev)]
         (when (< 1 (.getClickCount event))
           (let [target ^ListView (.getSource event)
                 idx (.. target getSelectionModel getSelectedIndex)]
-          
-            (swap! *state update :screen-stack
-                   (fn [stack]
-                     (let [current (peek stack)
-                           item (get (:children current) idx)]
-                       ;; run action
-                       (if (:fn item)
-                         (do
-                           ((:fn item))
-                           ;; refresh menu
-                           (conj (pop stack)
-                                 (assoc current :children
-                                        ((:children-fn current)))))
-                         ;; switch menu
-                         (if-let [cf (:children-fn item)]
-                           (conj stack (assoc item :children (cf)))
-                           stack))))))))
+            (handle-forward idx))))
       
 
       ::screen-stack-click
-      (swap! *state update :screen-stack subvec 0 (inc (:idx ev))))))
+      (handle-back (inc (:idx ev))))))
 
 
 
@@ -138,6 +168,7 @@
           :cell-factory {:fx/cell-type :list-cell
                          :describe (fn [path] {:text path})}
           :on-mouse-clicked {:event/type ::list-click}
+          :on-key-pressed {:event/type ::list-key}
           :style {:-fx-font-size "16px"}
           :items items}})
 
@@ -165,7 +196,7 @@
 
 
 
-(defn rgb-app [{:keys [screen-stack] :as state}]
+(defn rgb-app [{{:keys [screen-stack]} :state}]
   {:fx/type :stage
    :showing true
    :title "Rapoarte Grossbux"
@@ -195,11 +226,13 @@
 (defn start [config]
   (reset! *state (initial-state config))
   
-  (fx/mount-renderer
-   *state
-   (fx/create-renderer
-    :middleware (fx/wrap-map-desc assoc :fx/type rgb-app)
-    :opts {:fx.opt/map-event-handler handler})))
+  (let [renderer
+        (fx/create-renderer
+         :middleware (fx/wrap-map-desc
+                      (fn [state] {:fx/type rgb-app :state state}))
+         :opts {:fx.opt/map-event-handler handler})]
+    (fx/mount-renderer *state renderer)
+    renderer))
 
 
 
@@ -215,26 +248,17 @@
 
 (comment
   
-  (->> (clojure.edn/read-string (slurp "config.edn"))
-       (start))
+  (def renderer
+    (->> (clojure.edn/read-string (slurp "config.edn"))
+         (start)))
 
-
-  (.showAndWait
-   (Alert. Alert$AlertType/INFORMATION))
-
-
-  (fx/on-fx-thread
-   (fx/create-component
-    {:fx/type :dialog
-     :showing true
-     :dialog-pane {:fx/type :dialog-pane
-                   :content-text "Documentul a fost creat."
-                   :style {:-fx-font-size "16px"}
-                   :button-types [:ok]}}))
-
-
+  (renderer)
   
+
   )
+
+
+
 
 
 

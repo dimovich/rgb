@@ -410,13 +410,12 @@
 
 ;; https://docs.gluonhq.com/#_gluonfx_plugin_for_maven
 
-;; try running the jar on both computers
+;; try running the jar on both computers [DONE]
 ;;  -- compile against java8 [DONE]
-;;  -- jlink
-;; send pull request for cljfx cell-factory
+
 ;; try compiling on a VPS
 ;; clj-easy, how to use the :native alias (read until the end)
 
 ;; https://old.reddit.com/r/Clojure/comments/fw93gc/new_clojurians_ask_anything/fmvnq4q/
+;; https://vlaaad.github.io/year-of-clojure-on-the-desktop
 
-;; /home/dimovich/.sdkman/candidates/java/current/bin/java
