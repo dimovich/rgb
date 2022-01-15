@@ -44,7 +44,8 @@
 
 
 (def s757b-path "ARM_10/S757B.DBF")
-(def prereqs [s757b-path])
+(def v521-path "ARM_10/V52110A.DBF")
+(def prereqs [v521-path])
 
 (def output-path-ptrn "ARM_10/RGB/Creditori_%s.pdf")
 
@@ -94,7 +95,7 @@
     (hp/->pdf
      (html5 {:encoding "UTF-8"}
             [:body
-             (->> (read-entities2 (io/file month-dir s757b-path))
+             (->> (read-entities2 (io/file month-dir v521-path))
                   (gen-markup))])
      output-file
      {:styles {:fonts [{:font-family "consola"
@@ -104,9 +105,9 @@
 
 
 (defn -main [& [in out]]
-  (let [in (str in "/ARM_10/S757B.DBF")
+  (let [in (io/file in v521-path)
         out (or out "creditori.csv")]
-    (if (.exists (io/file in))
+    (if (.exists in)
       (spit out (read-entities in))
       (throw (Exception. (str "missing " in))))))
 

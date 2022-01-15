@@ -38,8 +38,13 @@
 
 
 
-(defn files-exist? [root files]
-  (->> files (every? #(.exists (io/file root %)))))
+(defn some-paths [roots files]
+  (let [roots (if (coll? roots) roots [roots])]
+    (some
+     (fn [root]
+       (when (->> files (every? #(.exists (io/file root %))))
+         root))
+     roots)))
 
 
 
@@ -47,6 +52,7 @@
   (->> (io/file path)
        (.listFiles)
        (filter #(.isDirectory ^File %))))
+
 
 
 

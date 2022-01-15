@@ -32,46 +32,47 @@
 
 
 
-(defn ipc21-screen-items [month-dir]
-  (cond-> []
-    (u/files-exist? month-dir ipc21/prereqs)
-    (conj {:text "Creare"
-           :fn (fn []
-                 (ipc21/gen month-dir)
-                 (alert "Documentul a fost creat."))})
-    
-
-    (u/files-exist? month-dir [ipc21/default-output-path])
-    (conj {:text "Deschidere"
-           :fn #(let [path (->> ipc21/default-output-path
-                                (io/file month-dir)
-                                (.getParent))]
-                  (u/open-explorer path))})))
-
-
-
-
-(defn creditori-screen-items [month-dir]
-  (let [output-file (rc/get-output-file month-dir)]
+(defn ipc21-screen-items [dir-paths]
+  (let [month-dir (u/some-paths dir-paths ipc21/prereqs)
+        output-file (io/file month-dir ipc21/default-output-path)]
     (cond-> []
-      (u/files-exist? month-dir rc/prereqs)
+      month-dir
       (conj {:text "Creare"
              :fn (fn []
-                   (rc/gen month-dir)
+                   (ipc21/gen month-dir)
                    (alert "Documentul a fost creat."))})
+    
 
       (.exists ^File output-file)
       (conj {:text "Deschidere"
-             :fn (fn []
-                   (u/open-explorer output-file))}))))
+             :fn #(u/open-explorer (.getParent output-file))}))))
 
 
 
-(defn default-screen-items [month-dir]
+
+(defn creditori-screen-items [dir-paths]
+  (when-let [month-dir (u/some-paths dir-paths rc/prereqs)]
+    (let [output-file (rc/get-output-file month-dir)]
+      (cond-> []
+        month-dir
+        (conj {:text "Creare"
+               :fn (fn []
+                     (rc/gen month-dir)
+                     (alert "Documentul a fost creat."))})
+
+        (.exists ^File output-file)
+        (conj {:text "Deschidere"
+               :fn (fn []
+                     (u/open-explorer output-file))})))))
+
+
+
+
+(defn default-screen-items [dir-paths]
   [{:text "IPC21"
-    :children-fn #(ipc21-screen-items month-dir)}
+    :children-fn #(ipc21-screen-items dir-paths)}
    {:text "Creditori"
-    :children-fn #(creditori-screen-items month-dir)}])
+    :children-fn #(creditori-screen-items dir-paths)}])
 
 
 
@@ -79,11 +80,13 @@
 (defn home-screen-items [paths]
   (->> (mapcat u/list-dirs paths)
        (filter #(re-find #"^\d+_\d+$" (.getName ^File %)))
-       (sort-by #(.getName ^File %))
+       (group-by #(.getName ^File %))
+       (map (fn [[name dir-paths]]
+              {:children-fn #(default-screen-items dir-paths)
+               :text name}))
+       (sort-by :text)
        (reverse)
-       (mapv (fn [dir]
-               {:children-fn #(default-screen-items dir)
-                :text (.getName ^File dir)}))))
+       vec))
 
 
 

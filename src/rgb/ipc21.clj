@@ -423,7 +423,7 @@
 
 
 (defn -main [month-path & [out]]
-  (if (u/files-exist? month-path prereqs)
+  (if (u/some-paths [month-path] prereqs)
     (gen (io/file month-path))
     (throw (Exception. (str "missing files in " month-path)))))
 
