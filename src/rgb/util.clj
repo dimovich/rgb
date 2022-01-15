@@ -1,6 +1,7 @@
 (ns rgb.util
   (:require [clojure.java.io :as io]
-            [clojure.pprint :refer [cl-format]])
+            [clojure.pprint :refer [cl-format]]
+            [clojure.string :as s])
   (:import [java.io File]))
 
 (set! *warn-on-reflection* true)
@@ -61,3 +62,26 @@
     (.. java.awt.Desktop
         getDesktop
         (open (io/file path)))))
+
+
+
+
+(defn spacefy
+  "123456.33555 --> 123'456.34
+  cl-format options: ~mincol,padchar,commachar:D"
+  [^Double num & [prec]]
+  (if (number? num)
+    (let [num' (Math/abs num)
+          prec (or prec (if (< 1 num') 0.01 0.001))
+          right-len (Math/abs (Math/log10 prec))
+          num' (round-double num')
+          left (long num')]
+
+      (if (== num' left)
+        (cl-format nil "~,,'':D" left)
+        (str (cl-format nil "~,,'':D" left)
+             (let [num'' (format "%.2f" num')
+                   idx (s/index-of num'' ".")]
+               (subs num'' idx (min (count num'')
+                                    (inc (+ idx right-len))))))))
+    num))

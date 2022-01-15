@@ -61,40 +61,46 @@
         (fn [[company sum]]
           [:h3 {:style (str "font-family: serif;"
                             "border-bottom: 1px dotted gray;"
-                            "width: 24em;"
-                            "font-size: 18px;"
+                            "width: 19em;"
+                            "font-size: 19px;"
                             "font-weight: normal;"
                             "white-space:nowrap")}
-           [:span {:style (str "width: 17em;"
+           [:span {:style (str "width: 12em;"
                                "text-overflow: ellipsis;"
                                "white-space: nowrap;"
                                "overflow: hidden;"
                                "display: inline-block")}
             company]
-           (let [[whole decimal] (clojure.string/split (str sum) #"\.")]
-             [:span {:style (str "width: 7em;"
-                                 "overflow: visible;"
-                                 "font-size: 17px;"
+           (let [[_ decimal] (clojure.string/split (format "%.2f" sum) #"\.")]
+             [:span {:style (str "width: 8.3em;"
+                                 "overflow: hidden;"
+                                 "font-size: 16px;"
+                                 "font-family: consola;"
                                  "text-align: right;"
                                  "display: inline-block")}
-              whole
-              [:span {:style (str "font-size: 12px;"
-                                  "color: gray")}
-               (if (zero? (mod sum 1))
-                 [:span {:style "visibility: hidden"} ",00"]
-                 [:span (str "," decimal)])]])]))
+              (u/spacefy (quot sum 1)) "."
+              [:span {:style "font-size: 12px; color: gray"}
+               decimal]])]))
        (into [:div #_{:style "margin: 2em"}])))
 
 
 
+(defn gen-month-markup [^File month-dir]
+  [:p {:style (str "font-family: consola;"
+                   "margin-bottom: 2em;") }
+   (let [[y m] (s/split (.getName month-dir) #"_")]
+     (str m "-" y))])
 
 
-(defn gen [month-dir & [out]]
+
+(defn gen [^File month-dir & [out]]
   (let [output-file (or out (get-output-file month-dir))]
     (io/make-parents output-file)
     (hp/->pdf
      (html5 {:encoding "UTF-8"}
             [:body
+             (gen-month-markup month-dir)
+             
              (->> (read-entities2 (io/file month-dir v521-path))
                   (gen-markup))])
      output-file
