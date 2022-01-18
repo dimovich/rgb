@@ -143,9 +143,10 @@
       
       ::list-click
       (let [event ^MouseEvent (:fx/event ev)]
-        (when (< 1 (.getClickCount event))
+        (when (= 2 (.getClickCount event))
           (let [target ^ListView (.getSource event)
                 idx (.. target getSelectionModel getSelectedIndex)]
+            (.consume event)
             (handle-forward idx))))
       
 

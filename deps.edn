@@ -10,15 +10,17 @@
         org.openjfx/javafx-controls$win {:mvn/version "17.0.0.1"}
         org.openjfx/javafx-graphics$win {:mvn/version "17.0.0.1"}
         clj-htmltopdf/clj-htmltopdf {:mvn/version "0.2"
-                                     :exclusions [;;com.openhtmltopdf/openhtmltopdf-svg-support
+                                     :exclusions [ ;;com.openhtmltopdf/openhtmltopdf-svg-support
                                                   com.openhtmltopdf/openhtmltopdf-rtl-support
                                                   org.apache.xmlgraphics/batik-codec
                                                   org.apache.xmlgraphics/batik-ext]}}
 
  :aliases
- {:build {:deps {io.github.clojure/tools.build { ;;:git/tag "v0.7.5" :git/sha "34727f7"
-                                                :local/root "../gits/tools.build"}}
-          :ns-default build}
+ {:build
+  {:deps {io.github.clojure/tools.build { ;;:git/tag "v0.7.5" :git/sha "34727f7"
+                                         :local/root "../gits/tools.build"}}
+   :ns-default build}
 
-  :native {:deps {com.github.clj-easy/graal-build-time {:mvn/version "0.1.4"}}
-           :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}}}
+  :native
+  {:deps {com.github.clj-easy/graal-build-time {:mvn/version "0.1.4"}}
+   :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}}}

@@ -402,6 +402,14 @@
 
 
 
+;; font path bug
+;; - try mono [OK]
+;; - try local file [OK]
+;; - explore source
+;; - other hd
+
+
+
 
 
 ;; AOT

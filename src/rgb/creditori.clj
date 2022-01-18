@@ -76,6 +76,7 @@
                                  "overflow: hidden;"
                                  "font-size: 16px;"
                                  "font-family: consola;"
+                                 ;;"font-weight: bold;"
                                  "text-align: right;"
                                  "display: inline-block")}
               (u/spacefy (quot sum 1)) "."
@@ -107,8 +108,9 @@
      {:page {:margin "0.7in"
              :size :a4
              :margin-box {:bottom-right-corner {:paging [:page]}}}
-      :styles {:fonts [{:font-family "consola"
-                        :src "resources/fonts/consola.ttf"}]}})))
+      :styles
+      {:fonts [{:font-family "consola"
+                :src "consola.ttf"}]}})))
 
 
 
