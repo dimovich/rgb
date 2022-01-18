@@ -215,6 +215,7 @@
                     :coll (map :text screen-stack)}
                              
                    {:fx/type list-view
+                    :v-box/vgrow :always
                     :items (->> (:children (peek screen-stack))
                                 (map :text))}]}}})
 

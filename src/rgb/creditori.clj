@@ -104,7 +104,10 @@
              (->> (read-entities2 (io/file month-dir v521-path))
                   (gen-markup))])
      output-file
-     {:styles {:fonts [{:font-family "consola"
+     {:page {:margin "0.7in"
+             :size :a4
+             :margin-box {:bottom-right-corner {:paging [:page]}}}
+      :styles {:fonts [{:font-family "consola"
                         :src "resources/fonts/consola.ttf"}]}})))
 
 
