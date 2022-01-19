@@ -437,3 +437,6 @@
 
 
 
+
+;; decimal separator
+;; (re-pattern (str "\\" (.. (DecimalFormat.) getDecimalFormatSymbols getDecimalSeparator)))

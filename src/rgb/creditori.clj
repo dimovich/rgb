@@ -71,7 +71,7 @@
                                "overflow: hidden;"
                                "display: inline-block")}
             company]
-           (let [[_ decimal] (clojure.string/split (format "%.2f" sum) #"\.")]
+           (let [[_ decimal] (clojure.string/split (format "%.2f" sum) #"\.|\,")]
              [:span {:style (str "width: 8.3em;"
                                  "overflow: hidden;"
                                  "font-size: 16px;"
