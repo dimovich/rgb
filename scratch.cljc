@@ -402,11 +402,8 @@
 
 
 
-;; font path bug
-;; - try mono [OK]
-;; - try local file [OK]
-;; - explore source
-;; - other hd
+;; Font Path bug
+;; - run on windows (try leiningen on XP)
 
 
 
@@ -421,8 +418,10 @@
 
 ;; babashka
 
+
 ;; try compiling on a VPS
 ;; clj-easy, how to use the :native alias (read until the end)
+
 
 
 ;; Tcl/Tk
@@ -432,11 +431,21 @@
 ;; https://glade.gnome.org/
 
 
+
 ;; https://old.reddit.com/r/Clojure/comments/fw93gc/new_clojurians_ask_anything/fmvnq4q/
 ;; https://vlaaad.github.io/year-of-clojure-on-the-desktop
 
 
 
 
-;; decimal separator
-;; (re-pattern (str "\\" (.. (DecimalFormat.) getDecimalFormatSymbols getDecimalSeparator)))
+;; decimal separator [OK]
+
+
+
+
+
+
+
+
+
+

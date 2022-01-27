@@ -1,4 +1,4 @@
-{:paths ["src"]
+{:paths ["src" "resources"]
  :deps {org.clojure/clojure {:mvn/version "1.10.3"}
         com.github.albfernandez/javadbf {:mvn/version "1.13.2"}
         hiccup/hiccup {:mvn/version "1.0.5"}
@@ -10,6 +10,7 @@
         org.openjfx/javafx-controls$win {:mvn/version "17.0.0.1"}
         org.openjfx/javafx-graphics$win {:mvn/version "17.0.0.1"}
         clj-htmltopdf/clj-htmltopdf {:mvn/version "0.2"
+                                     ;;:local/root "../gits/clj-htmltopdf"
                                      :exclusions [ ;;com.openhtmltopdf/openhtmltopdf-svg-support
                                                   com.openhtmltopdf/openhtmltopdf-rtl-support
                                                   org.apache.xmlgraphics/batik-codec

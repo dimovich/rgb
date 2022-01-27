@@ -44,7 +44,7 @@
     
 
       (.exists ^File output-file)
-      (conj {:text "Deschidere"
+      (conj {:text "Deschide"
              :fn #(u/open-explorer (.getParent output-file))}))))
 
 
@@ -61,7 +61,7 @@
                      (alert "Documentul a fost creat."))})
 
         (.exists ^File output-file)
-        (conj {:text "Deschidere"
+        (conj {:text "Deschide"
                :fn (fn []
                      (u/open-explorer output-file))})))))
 
@@ -107,6 +107,7 @@
                (if-let [cf (:children-fn item)]
                  (let [children (cf)]
                    (conj stack (assoc item :children
+                                      ;; remove menu items that have no children
                                       (->> children
                                            (remove #(when-let [cf2 (:children-fn %)]
                                                       (empty? (cf2))))
@@ -266,11 +267,6 @@
 
 
 
-
-;; 
-;; config
-;; merging 2021_12 from server and contabil
-;; 
 
 ;; on build completion
 ;; (javafx.application.Platform/exit)

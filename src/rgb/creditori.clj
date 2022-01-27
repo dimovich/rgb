@@ -71,18 +71,17 @@
                                "overflow: hidden;"
                                "display: inline-block")}
             company]
-           (let [[_ decimal] (clojure.string/split (format "%.2f" sum) #"\.|\,")]
+           (let [[_ sep decimal] (u/whole-sep-decimal sum)]
              [:span {:style (str "width: 8.3em;"
                                  "overflow: hidden;"
                                  "font-size: 16px;"
                                  "font-family: consola;"
-                                 ;;"font-weight: bold;"
                                  "text-align: right;"
                                  "display: inline-block")}
-              (u/spacefy (quot sum 1)) "."
+              (u/spacefy (quot sum 1)) sep
               [:span {:style "font-size: 12px; color: gray"}
                decimal]])]))
-       (into [:div #_{:style "margin: 2em"}])))
+       (into [:div])))
 
 
 
@@ -110,7 +109,7 @@
              :margin-box {:bottom-right-corner {:paging [:page]}}}
       :styles
       {:fonts [{:font-family "consola"
-                :src "consola.ttf"}]}})))
+                :src "fonts/consola.ttf"}]}})))
 
 
 
@@ -124,7 +123,11 @@
 
 
 
-;; clojure -X:uberjar :jar creditori.jar :main-class rgb.creditori
+
+
+
+
+
 ;; java -jar creditori.jar "/run/user/1000/gvfs/smb-share:server=agroialserver,share=serverd/Bux2015/2021_07"
 ;; java -jar creditori.jar ./data/creditori
 

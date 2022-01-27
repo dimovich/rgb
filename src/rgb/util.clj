@@ -2,7 +2,8 @@
   (:require [clojure.java.io :as io]
             [clojure.pprint :refer [cl-format]]
             [clojure.string :as s])
-  (:import [java.io File]))
+  (:import [java.io File]
+           [java.text DecimalFormat]))
 
 (set! *warn-on-reflection* true)
 
@@ -66,6 +67,10 @@
 
 
 
+(def decimal-separator (.. (DecimalFormat.) getDecimalFormatSymbols getDecimalSeparator))
+(def separator-pattern (re-pattern (str "\\" decimal-separator)))
+
+
 (defn spacefy
   "123456.33555 --> 123'456.34
   cl-format options: ~mincol,padchar,commachar:D"
@@ -73,15 +78,24 @@
   (if (number? num)
     (let [num' (Math/abs num)
           prec (or prec (if (< 1 num') 0.01 0.001))
-          right-len (Math/abs (Math/log10 prec))
+          right-len (int (Math/abs (Math/log10 prec)))
           num' (round-double num')
           left (long num')]
 
-      (if (== num' left)
-        (cl-format nil "~,,'':D" left)
-        (str (cl-format nil "~,,'':D" left)
-             (let [num'' (format "%.2f" num')
-                   idx (s/index-of num'' ".")]
+      (str (cl-format nil "~,,'':D" left)
+           (when-not (== num' left)
+             (let [pat (str "%." right-len "f")
+                   num'' (format pat num')
+                   idx (s/index-of num'' decimal-separator)]
                (subs num'' idx (min (count num'')
                                     (inc (+ idx right-len))))))))
     num))
+
+
+
+(defn whole-sep-decimal [num]
+  (let [num' (if (int? num) (double num) num)
+        [whole decimal] (-> (format "%.2f" num')
+                            (s/split separator-pattern))]
+    
+    [whole decimal-separator decimal]))
