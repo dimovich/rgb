@@ -438,14 +438,4 @@
 
 
 
-;; decimal separator [OK]
-
-
-
-
-
-
-
-
-
 

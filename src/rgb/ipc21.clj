@@ -15,6 +15,10 @@
 (set! *warn-on-reflection* true)
 
 
+(def cota-0 #{15311 15312 15321
+              15322 15332 15342
+              155 159})
+
 (def s795-path "ARM_02/S795.DBF")
 (def s010-path "ARM_02/S010.DBF")
 (def s900-path "S900.DBF")
@@ -194,7 +198,9 @@
         [:c5 (format-date (:date-start ent))]
         [:c6 (format-date (:date-end ent))]
         [:c7 (:categ ent)]
-        [:c71 "24%"]
+        [:c71
+         (if (cota-0 (:categ ent))
+           "0%" "24%")]
         [:c8 (:prof ent)]
         [:c9 (:payed ent)]
         (if (some-> (:med-payed ent) pos?)

@@ -71,14 +71,14 @@
                                "overflow: hidden;"
                                "display: inline-block")}
             company]
-           (let [[_ sep decimal] (u/whole-sep-decimal sum)]
+           (let [[_ _ decimal] (u/whole-sep-decimal sum)]
              [:span {:style (str "width: 8.3em;"
                                  "overflow: hidden;"
                                  "font-size: 16px;"
                                  "font-family: consola;"
                                  "text-align: right;"
                                  "display: inline-block")}
-              (u/spacefy (quot sum 1)) sep
+              (u/spacefy (quot sum 1)) "."
               [:span {:style "font-size: 12px; color: gray"}
                decimal]])]))
        (into [:div])))
@@ -109,7 +109,7 @@
              :margin-box {:bottom-right-corner {:paging [:page]}}}
       :styles
       {:fonts [{:font-family "consola"
-                :src "fonts/consola.ttf"}]}})))
+                :src "consola.ttf"}]}})))
 
 
 
