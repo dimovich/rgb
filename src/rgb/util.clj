@@ -1,9 +1,13 @@
 (ns rgb.util
   (:require [clojure.java.io :as io]
             [clojure.pprint :refer [cl-format]]
-            [clojure.string :as s])
+            [clojure.string :as s]
+            [clj-time.core :as ct]
+            [clj-time.coerce :as ctc]
+            [clj-time.format :as ctf])
   (:import [java.io File]
-           [java.text DecimalFormat]))
+           [java.text DecimalFormat]
+           [com.linuxense.javadbf DBFReader DBFRow]))
 
 (set! *warn-on-reflection* true)
 
@@ -11,6 +15,18 @@
 (defn round-double [^Double x]
   (Double. ^String (cl-format nil "~,2f" x)))
 
+
+(def get-string #(.getString ^DBFRow %1 ^String %2))
+(def get-double #(.getDouble ^DBFRow %1 ^String %2))
+(def get-int #(.getInt ^DBFRow %1 ^String %2))
+(def get-date
+  #(-> (.getDate ^DBFRow %1 ^String %2)
+       ctc/from-date
+       (ct/from-time-zone (ct/time-zone-for-offset -3))))
+
+
+(def out-fmt (ctf/formatter "dd.MM.yyyy"))
+(def format-date #(ctf/unparse out-fmt %))
 
 
 (defn normalize-path [^String path]
@@ -30,13 +46,13 @@
 
 
 
-(defn row-fields [row field-opts]
+(defn row-fields [fields row]
   (reduce
    (fn [res k]
-     (let [[field f] (field-opts k)]
+     (let [[field f] (fields k)]
        (assoc res k (f row field))))
    {}
-   (keys field-opts)))
+   (keys fields)))
 
 
 
@@ -99,3 +115,17 @@
                             (s/split separator-pattern))]
     
     [whole decimal-separator decimal]))
+
+
+
+
+(defn dbf-rows [dbf-file]
+  (reify clojure.lang.IReduceInit
+    (reduce [this f init]
+      (with-open [rdr (DBFReader. (io/input-stream dbf-file))]
+        (loop [acc init]
+          (let [row (.nextRow rdr)]
+            (if (and (some? row)
+                     (not (reduced? acc)))
+              (recur (f acc row))
+              (unreduced acc))))))))

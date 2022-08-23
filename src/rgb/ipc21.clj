@@ -2,10 +2,10 @@
   (:require [clojure.java.io :as io]
             [hiccup.core :refer [html]]
             [clojure.string :as s]
-            [clj-time.core :as ct]
-            [clj-time.coerce :as ctc]
             [clj-time.format :as ctf]
-            [rgb.util :as u])
+            [rgb.util :as u :refer [get-string get-double
+                                    get-int get-date
+                                    format-date]])
   (:import [com.linuxense.javadbf DBFReader DBFRow]
            [java.io File])
 
@@ -27,21 +27,6 @@
 
 
 (def default-output-path "ARM_02/IPC21/IPC21.xml")
-
-
-
-(def get-string #(.getString ^DBFRow %1 ^String %2))
-(def get-double #(.getDouble ^DBFRow %1 ^String %2))
-(def get-int #(.getInt ^DBFRow %1 ^String %2))
-(def get-date
-  #(-> (.getDate ^DBFRow %1 ^String %2)
-       ctc/from-date
-       (ct/from-time-zone (ct/time-zone-for-offset -3))))
-
-
-
-(def out-fmt (ctf/formatter "dd.MM.yyyy"))
-(def format-date #(ctf/unparse out-fmt %))
 
 
 (def s900-fields
@@ -99,7 +84,7 @@
            res {}]
       (if row
         (let [{:keys [uid firstname lastname] :as row-data}
-              (u/row-fields row s795-fields)]
+              (u/row-fields s795-fields row)]
           (recur
            (.nextRow rdr)
            (->> (str lastname " " firstname)
@@ -119,7 +104,7 @@
            res {}]
       (if row
         (let [{:keys [uid account amount] :as row-data}
-              (u/row-fields row s900-fields)]
+              (u/row-fields s900-fields row)]
           (recur
            (.nextRow rdr)
            (if-let [akey (get account-keys account)]
@@ -137,7 +122,7 @@
     (loop [row (.nextRow rdr)
            res {}]
       (if row
-        (let [{:keys [uid division] :as row-data} (u/row-fields row s010-fields)]
+        (let [{:keys [uid division] :as row-data} (u/row-fields s010-fields row)]
           (recur
            (.nextRow rdr)
            (assoc res uid {:division (division-names division)
@@ -389,7 +374,7 @@
       (loop [row (.nextRow rdr)
              res {}]
         (if row
-          (let [row-data (u/row-fields row s092-fields)]
+          (let [row-data (u/row-fields s092-fields row)]
             (recur
              (.nextRow rdr)
              (cond-> res
@@ -466,3 +451,6 @@
 ;; clojure -X:uberjar :jar ipc21.jar :main-class rgb.ipc21
 
 ;; java -jar ipc21.jar data/SAL2020/2021_05
+
+
+;; scutirile -- 544.21 (server), griu, se indica si impoziteaza in IALS21
