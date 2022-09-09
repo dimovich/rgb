@@ -448,25 +448,3 @@ find . -name "*.DBF" -exec grep -l TVA12 '{}' \;
 
 
 
-(def s008-xf (comp (map (partial u/row-fields s008-fields))
-                   (map (juxt :account :name))))
-
-(def s215-xf (comp (map (partial u/row-fields s215-fields))
-                   (filter (comp (partial = 3) :owner-id))))
-
-(def s008
-  (->> (io/file "data/server/Bux2015/2022_07" s008-path)
-       (u/dbf-rows)
-       (into {} s008-xf)))
-
-
-(def s215
-  (->> (io/file "data/server/Bux2015/2022_07" s215-path)
-       (u/dbf-rows)
-       (into [] s215-xf)
-       (group-by :account)))
-
-
-(->> (get s215 "21110")
-     (map #(select-keys % [:uid :name :amount :value]))
-     (sort-by :name))
