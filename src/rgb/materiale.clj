@@ -57,21 +57,46 @@
        (io/file root)))
 
 
+(defn gen-cell [style text]
+  [:span
+   {:style (str style
+                "display: inline-block;"
+                ;;"border: 1px solid #ff4846;"
+                )}
+   text])
 
 (defn gen-row-markup [m]
-  [:p
-   [:span (:uid m)]
-   [:span (:name m)]
-   [:span (:unit m)]
-   [:span (:amount m)]
-   [:span (:value m)]])
+  [:div {:style (str "border-bottom: 1px dotted gray;"
+                     "padding: 0;"
+                     "margin: 0;"
+                     "width: 38em;")}
+   (gen-cell "width: 4em;" (:uid m))
+   (gen-cell "width: 18em;" (:name m))
+   (gen-cell (str "width: 3em;"
+                  "text-align: center;") (:unit m))
+   (gen-cell (str "width: 5em;"
+                  "text-align: right;")
+             (:amount m))
+   (gen-cell (str "width: 8em;"
+                  "text-align: right;")
+             (:value m))])
 
 
 
 
 (defn gen-account-markup [acc acc-name]
-  [:p {:style (str "margin-bottom: 2em;")}
-   (str acc " " acc-name)])
+  [:p {:style (str "margin-bottom: 1em;"
+                   "padding-top: 1em;")}
+   [:span {:style "width: 4em; display: inline-block;"} acc]
+   [:b acc-name]])
+
+
+
+(defn gen-owner-markup [row]
+  [:p {:style (str "margin-top: -1em;"
+                     "font-size: 1.2em;")}
+   [:span "Materiale " (:owner-name row)]
+   [:span (str "  ("(:owner-id row)")")]])
 
 
 
@@ -91,7 +116,9 @@
             (->> (get s215 acc)
                  (sort-by :name)
                  (map gen-row-markup)
-                 (into [(gen-account-markup acc (s008 acc))])))))))
+                 (into [(gen-account-markup acc (s008 acc))]))))
+         (concat [(u/gen-month-markup month-dir)
+                  (gen-owner-markup (first (val (first s215))))]))))
 
 
 
@@ -155,4 +182,6 @@
 
 
 ;; TODO
-;; format data
+;; format data (align top all items)
+;; add to menu
+;; input box 3 10 124 42

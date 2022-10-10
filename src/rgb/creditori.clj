@@ -85,13 +85,6 @@
 
 
 
-(defn gen-month-markup [^File month-dir]
-  [:p {:style (str "font-family: consola;"
-                   "margin-bottom: 2em;") }
-   (let [[y m] (s/split (.getName month-dir) #"_")]
-     (str m "-" y))])
-
-
 
 (defn gen [^File month-dir & [out]]
   (let [output-file (or out (get-output-file month-dir))]
@@ -99,7 +92,7 @@
     (hp/->pdf
      (html5 {:encoding "UTF-8"}
             [:body
-             (gen-month-markup month-dir)
+             (u/gen-month-markup month-dir)
              
              (->> (read-entities2 (io/file month-dir v521-path))
                   (gen-markup))])

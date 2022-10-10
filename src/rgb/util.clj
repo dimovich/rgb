@@ -129,3 +129,12 @@
                      (not (reduced? acc)))
               (recur (f acc row))
               (unreduced acc))))))))
+
+
+
+
+(defn gen-month-markup [^File month-dir]
+  [:p {:style (str "font-family: consola;"
+                   "margin-bottom: 2em;") }
+   (let [[y m] (s/split (.getName month-dir) #"_")]
+     (str m "-" y))])
