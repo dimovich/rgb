@@ -7,6 +7,6 @@ cp target/rgb.jar release/rgb8.jar
 
 
 ## Java 11
-## switchjava11
-## clj -T:build uber
-## cp target/rgb.jar release/rgb11.jar
+switchjava11
+clj -T:build uber
+cp target/rgb.jar release/rgb11.jar

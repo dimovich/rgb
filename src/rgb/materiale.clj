@@ -52,15 +52,18 @@
 
 
 
-(defn get-output-path [^File root fmt]
-  (->> (format fmt (.getName root))
-       (io/file root)))
+(defn get-output-file
+  ([^File root] (get-output-file root output-path-fmt))
+  ([^File root fmt] (->> (format fmt (.getName root))
+                         (io/file root))))
+
 
 
 (defn gen-cell [style text]
   [:span
    {:style (str style
                 "display: inline-block;"
+                "vertical-align: top;"
                 ;;"border: 1px solid #ff4846;"
                 )}
    text])
@@ -76,10 +79,20 @@
                   "text-align: center;") (:unit m))
    (gen-cell (str "width: 5em;"
                   "text-align: right;")
-             (:amount m))
+             (let [amount (:amount m)]
+               (if (and (number? amount)
+                        (= (quot amount 1) amount))
+                 (int amount)
+                 amount)))
    (gen-cell (str "width: 8em;"
                   "text-align: right;")
-             (:value m))])
+             (if (number? (:value m))
+               (let [[w _ d] (u/whole-sep-decimal (:value m))]
+                 [:span w "."
+                  [:span {:style "font-size: 12px; color: gray"}
+                   d]])
+               (:value m)))])
+
 
 
 
@@ -110,21 +123,29 @@
                   (into [] s215-xf)
                   (group-by :account))]
 
-    (->> accounts-to-gen
-         (mapcat
-          (fn [acc]
-            (->> (get s215 acc)
-                 (sort-by :name)
-                 (map gen-row-markup)
-                 (into [(gen-account-markup acc (s008 acc))]))))
-         (concat [(u/gen-month-markup month-dir)
-                  (gen-owner-markup (first (val (first s215))))]))))
+    (concat
+     ;; header
+     [(u/gen-month-markup month-dir)
+      (gen-owner-markup (first (val (first s215))))
+      (gen-row-markup {:uid "Cod"
+                       :name "Denumirea"
+                       :unit "Unit."
+                       :amount "Cant."
+                       :value "Suma (lei)"})]
+     ;; data       
+     (->> accounts-to-gen
+          (mapcat
+           (fn [acc]
+             (->> (get s215 acc)
+                  (sort-by :name)
+                  (map gen-row-markup)
+                  (into [(gen-account-markup acc (s008 acc))]))))))))
 
 
 
 
 (defn gen [^File month-dir & [out]]
-  (let [out (or out (get-output-path month-dir))]
+  (let [out (or out (get-output-file month-dir))]
     (io/make-parents out)
     (hp/->pdf
      (html5 {:encoding "UTF-8"}
@@ -182,6 +203,4 @@
 
 
 ;; TODO
-;; format data (align top all items)
-;; add to menu
 ;; input box 3 10 124 42

@@ -4,7 +4,8 @@
             [clojure.java.io :as io]
             [rgb.util :as u]
             [rgb.ipc21 :as ipc21]
-            [rgb.creditori :as rc])
+            [rgb.creditori :as cred]
+            [rgb.materiale :as mat])
 
   (:import [java.io File]
            [javafx.scene.control ListView]
@@ -51,13 +52,13 @@
 
 
 (defn creditori-screen-items [dir-paths]
-  (when-let [month-dir (u/some-paths dir-paths rc/prereqs)]
-    (let [output-file (rc/get-output-file month-dir)]
+  (when-let [month-dir (u/some-paths dir-paths cred/prereqs)]
+    (let [output-file (cred/get-output-file month-dir)]
       (cond-> []
         month-dir
         (conj {:text "Creare"
                :fn (fn []
-                     (rc/gen month-dir)
+                     (cred/gen month-dir)
                      (alert "Documentul a fost creat."))})
 
         (.exists ^File output-file)
@@ -68,11 +69,33 @@
 
 
 
+(defn materiale-screen-items [dir-paths]
+  (when-let [month-dir (u/some-paths dir-paths mat/prereqs)]
+    (let [output-file (mat/get-output-file month-dir)]
+      (cond-> []
+        month-dir
+        (conj {:text "Creare"
+               :fn (fn []
+                     (mat/gen month-dir output-file)
+                     (alert "Documentul a fost creat."))})
+
+        (.exists ^File output-file)
+        (conj {:text "Deschide"
+               :fn (fn []
+                     (u/open-explorer output-file))})))))
+
+
+
+
+
+
 (defn default-screen-items [dir-paths]
   [{:text "IPC21"
     :children-fn #(ipc21-screen-items dir-paths)}
    {:text "Creditori"
-    :children-fn #(creditori-screen-items dir-paths)}])
+    :children-fn #(creditori-screen-items dir-paths)}
+   {:text "Materiale DP"
+    :children-fn #(materiale-screen-items dir-paths)}])
 
 
 
