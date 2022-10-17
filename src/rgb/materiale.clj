@@ -29,8 +29,8 @@
    :unit ["NME1" (comp first
                        (partial re-find #"^(\w{1,3})")
                        u/get-string)]
-   :amount ["NSHTUK" u/get-double]
-   :value ["NSUMAD" u/get-double]})
+   :amount ["KSHTUK" u/get-double]
+   :value ["KSUMAD" u/get-double]})
 
 
 (def s008-fields
@@ -204,3 +204,4 @@
 
 ;; TODO
 ;; input box 3 10 124 42
+;; total
