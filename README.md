@@ -1,1 +1,5 @@
-# Rapoarte pentru Grossbux
+# Rapoarte Grossbux
+
+- IPC21
+- Creditori
+- Materiale
