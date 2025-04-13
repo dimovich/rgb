@@ -402,6 +402,344 @@ find . -name "*.DBF" -exec grep -l TVA12 '{}' \;
 
 
 
+
+
+
+
+
+
+
+
+;; Inventarierea
+
+
+(import '[com.linuxense.javadbf DBFWriter DBFReader])
+(require '[clojure.java.io :as io]
+         '[hiccup.core :refer [html]]
+         '[hiccup.util :as hu]
+         '[clojure.string :as s]
+         '[clj-time.core :as ct]
+         '[clj-time.coerce :as ctc]
+         '[clj-time.format :as ctf]
+         '[clojure.pprint :refer [cl-format]])
+
+
+(defn round-double9 [^Double x]
+  (Double. ^String (cl-format nil "~,9f" x)))
+
+
+(def date-fmt (ctf/formatter "MM/dd/yy"))
+(defn format-date [dt] (ctf/unparse date-fmt dt))
+
+
+(defn timestamp2 [dt]
+  (str (+ (* 10000 (- (ct/year dt) 1990))
+          (* 100 (ct/month dt))
+          (ct/day dt))
+       "."
+       (-> (+ (/ (ct/hour dt) 24)
+              (/ (ct/minute dt) (* 24 60))
+              (/ (ct/second dt) (* 24 60 60)))
+           double
+           str
+           (subs 2 11))))
+
+
+(defn timestamp [dt]
+  (round-double9
+   (double
+    (+ (+ (* 10000 (- (ct/year dt) 1990))
+          (* 100 (ct/month dt))
+          (ct/day dt))
+       (+ (/ (ct/hour dt) 24)
+          (/ (ct/minute dt) (* 24 60))
+          (/ (ct/second dt) (* 24 60 60)))))))
+
+
+
+
+;; 04/10/2025 350410.347513003
+
+
+(defn timestamp-fn [start-dt]
+  (let [dt (atom start-dt)]
+    (fn []
+      (-> (swap! dt #(ct/plus % (ct/seconds 2)))
+          (timestamp)))))
+
+(def next-ts (timestamp-fn (ct/now)))
+
+
+(def csv-data (slurp "dump/inv/inv.csv"))
+
+(def units {1 "bucati."
+            16 "pachet"
+            7 "metri"
+            4 "kg    ."
+            11 "perechi."})
+
+
+(def data (->> (s/split-lines csv-data)
+               (map #(s/split %1 #","))
+               (map-indexed #(into [(+ 1870 %1)] %2))
+               (map #(update %1 2 Integer/parseInt))
+               (map #(update %1 3 Double/parseDouble))
+               (map #(update %1 4 Double/parseDouble))))
+
+
+
+(first data)
+[1864 "Clame aparat legat" 1 "70" "1212.078"]
+
+
+
+(defn get-fields [path]
+  (with-open [rdr (DBFReader. (io/input-stream path))]
+    (into-array com.linuxense.javadbf.DBFField
+                (for [i (range (.getFieldCount rdr))]
+                  (.getField rdr i)))))
+
+
+(def s005-fields ["KOD" "NAME" "NAMER" "NAME_D" "ARTICUL2" "STRIHKOD" "GRMAT" "KD1" "NME1" "KD2" "NME2" "KFED" "VES1KG" "NORMA" "C_INP" "C_OUT" "C_OUT2" "C_OUT3" "C_OUT4" "DGODN" "SROKGODN" "SPZ" "SPP" "ACCIZ" "NDS" "MAXPRC" "TOVAR" "SBROS" "SERVICE" "WORKED" "KODCROS" "DUF"])
+
+(def s005-path "dump/inv/S005.DBF")
+
+
+(def path "dump/inv/S005-new.DBF")
+(io/copy (io/file s005-path) (io/file path))
+
+(def wtr (DBFWriter. (io/file path)))
+;;(.setFields wtr (get-fields s005-path))
+
+;; old data
+#_(with-open [rdr (DBFReader. (io/input-stream s005-path))]
+    (loop []
+      (when-let [row (.nextRecord rdr)]
+        (.addRecord wtr row)
+        (recur))))
+
+
+;; new data
+(loop [data data]
+  (when data
+    (let [row (first data)
+          m {"KOD" (get row 0)
+             "NAME" (get row 1)
+             "GRMAT" 1
+             "KD1" (get row 2)
+             "NME1" (units (get row 2))
+             "KD2" 0
+             "KFED" 0
+             "C_INP" 0
+             "C_OUT" 0
+             "SROKGODN" 0
+             "SPZ" 0
+             "DUF" (ctc/to-sql-date (ct/now))}]
+      (->> (into-array Object (map #(m %) s005-fields))
+           (.addRecord wtr))
+      (recur (next data)))))
+
+
+(.close wtr)
+
+
+
+
+(def s215-path "dump/inv/S215.DBF")
+(def s215-fields ["SSU" "ACTIV" "KODZAK" "SPP" "KODVAL" "KODMAT" "NAME_D" "NAME" "NAMZAK" "KODFSK" "NAMSPP" "NAMSSU" "NME1" "NME2" "KFC1" "NSUMAD" "NSUMAK" "NSHTUK" "NSHTU2" "KSUMAD" "KSUMAK" "KSHTUK" "KSHTU2" "RUB_DBT" "RUB_KDT" "SHT_DBT" "SHT_KDT" "SH2_DBT" "SH2_KDT" "NSUMAV" "ODSUMAV" "OKSUMAV" "KSUMAV" "KURS" "INPSUM" "INPKOL" "CEKSUM" "CEKKOL" "TEKKOL" "DIFKOL" "CENAM" "NDOCN" "TEXTN" "TEXTLAST" "NDOC" "SBROS" "DATADOCN" "DUF_"])
+
+
+(def path "dump/inv/S215-new.DBF")
+(io/copy (io/file s215-path) (io/file path))
+
+(def wtr (DBFWriter. (io/file path)))
+;;(.setFields wtr (get-fields s215-path))
+
+
+
+;; old
+#_(with-open [rdr (DBFReader. (io/input-stream s215-path))]
+    (loop []
+      (when-let [row (.nextRecord rdr)]
+        (.addRecord wtr row)
+        (recur))))
+
+;; new
+(loop [data data]
+  (when data
+    (let [row (first data)
+          m {"SSU" "21710"
+             "KODZAK" 1311
+             "KODMAT" (get row 0)
+             "NAME" (get row 1)
+             "NME1" (units (get row 2))
+             "KFC1" 0
+             "KSUMAD" (get row 4)
+             "KSUMAK" 0
+             "KSHTUK" (get row 3)
+             "RUB_DBT" (get row 4)
+             "RUB_KDT" 0
+             "SHT_DBT" (get row 3)
+             "SHT_KDT" 0
+             "DUF_" (ctc/to-sql-date (ct/now))}]
+      (->> (into-array Object (map #(m %) s215-fields))
+           (.addRecord wtr))
+      (recur (next data)))))
+
+(.close wtr)
+
+
+
+
+
+
+(def s900-path "dump/inv/S900.DBF")
+(def s900-fields ["NDOC" "SSUD" "SSUK" "NAME" "NOMDOG" "SIF" "SPZ" "SPP" "SPPKR" "TYP_DOC" "DATA_BAN" "DATA" "SHTU2" "INPZAK" "OUTZAK" "INVN" "KODMAT" "KODVAL" "PROVD" "SHTUK" "SUMAT" "SSUD1" "SSUK1" "ZAKD1" "ZAKK1" "SUMA1" "SSUD2" "SSUK2" "ZAKD2" "ZAKK2" "SUMA2" "SSUD3" "SSUK3" "ZAKD3" "ZAKK3" "SUMA3" "SSUD4" "SSUK4" "ZAKD4" "ZAKK4" "SUMA4" "ARM" "DOPK" "DOPKQ" "DOPKU" "MANAGER" "OPERATOR" "DOC_REG" "DOC_ZAR" "DUF" "IDN" "DMOD" "DOCID"])
+
+
+
+(def ts (timestamp-fn (ct/now)))
+
+(def path "dump/inv/S900-new.DBF")
+(io/copy (io/file s900-path) (io/file path))
+
+(def wtr (DBFWriter. (io/file path)))
+;;(.setFields wtr (get-fields s900-path))
+
+;; old
+#_(with-open [rdr (DBFReader. (io/input-stream s900-path))]
+    (loop []
+      (when-let [row (.nextRecord rdr)]
+        (.addRecord wtr row)
+        (recur))))
+
+
+(def idn-list (atom []))
+
+;; new
+(loop [data data]
+  (when data
+    (let [row (first data)
+          idn (ts)
+          m {"NDOC" "transmitere"
+             "SSUD" "21710"
+             "SSUK" "21720"
+             "NAME" "universala"
+             "SPZ" 0
+             "SPP" 0
+             "TYP_DOC" 0
+             "DATA_BAN" (ctc/to-sql-date (ct/now))
+             "DATA" (ctc/to-sql-date (ct/now))
+             "SHTU2" 0
+             "INPZAK" 1311
+             "OUTZAK" 0
+             "INVN" 0
+             "KODMAT" (get row 0)
+             "KODVAL" 0
+             "PROVD" 1
+             "SHTUK" (get row 3)
+             "SUMAT" (get row 4)
+             "SSUD1" "21710"
+             "SSUK1" "21720"
+             "ZAKD1" 1311
+             "ZAKK1" 0
+             "SUMA1" (get row 4)
+             "SSUD2" "00000"
+             "SSUK2" "00000"
+             "ZAKD2" 0
+             "ZAKK2" 0
+             "SUMA2" 0
+             "SSUD3" "00000"
+             "SSUK3" "00000"
+             "ZAKD3" 0
+             "ZAKK3" 0
+             "SUMA3" 0
+             "SSUD4" "00000"
+             "SSUK4" "00000"
+             "ZAKD4" 0
+             "ZAKK4" 0
+             "SUMA4" 0
+             "ARM" 10
+             "DOPK" 0
+             "DOPKQ" 0
+             "DOPKU" 0
+             "MANAGER" 0
+             "DUF" (ctc/to-sql-date (ct/now))
+             "IDN" idn
+             "DMOD" idn}]
+      (swap! idn-list conj idn)
+      (->> (into-array Object (map #(m %) s900-fields))
+           (.addRecord wtr))
+      (recur (next data)))))
+
+
+(.close wtr)
+
+
+
+
+
+
+(def s902-path "dump/inv/S902.DBF")
+(def s902-fields ["IDN" "DMOD"])
+
+(def path "dump/inv/S902-new.DBF")
+(io/copy (io/file s902-path) (io/file path))
+
+(with-open [wtr (DBFWriter. (io/file path))]
+ (loop [[idn & rst] @idn-list]
+   (when idn
+     (let [m {"IDN" idn
+              "DMOD" idn}]
+       (->> (into-array Object (map #(m %) s902-fields))
+            (.addRecord wtr))
+       (recur rst)))))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;; KOD,N,6,0	NAME,C,50	NAMER,C,50	NAME_D,C,20	ARTICUL2,C,20	STRIHKOD,C,20	GRMAT,N,6,0	KD1,N,3,0	NME1,C,10	KD2,N,3,0	NME2,C,10	KFED,N,14,6	VES1KG,N,10,4	NORMA,N,16,8	C_INP,N,19,4	C_OUT,N,19,4	C_OUT2,N,19,4	C_OUT3,N,19,4	C_OUT4,N,19,4	DGODN,D	SROKGODN,N,8,0	SPZ,N,6,0	SPP,N,5,0	ACCIZ,N,10,4	NDS,N,2,0	MAXPRC,N,6,2	TOVAR,L	SBROS,L	SERVICE,L	WORKED,L	KODCROS,N,6,0	DUF,D
+
+
+
+
+(comment
+  (def encoding "CP866")
+  (def S005 (DBFWriter. (io/file S005-path) encoding))
+
+  (import '[com.linuxense.javadbf DBFUtils]
+          '[java.nio.charset StandardCharsets])
+
+  (->> (DBFUtils/doubleFormating (ts) StandardCharsets/ISO_8859_1 16 9)
+       (map char)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ;; Font Path bug
 ;; - run on windows (try leiningen on XP)
 
