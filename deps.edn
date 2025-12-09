@@ -1,7 +1,7 @@
 {:paths ["src" "resources"]
  :deps {org.clojure/clojure {:mvn/version "1.12.0"}
         ;;com.github.albfernandez/javadbf {:mvn/version "1.14.1"}
-        com.github.albfernandez/javadbf {:local/root "../gits/javadbf/target/javadbf-2.0.0-SNAPSHOT.jar"}
+        com.github.albfernandez/javadbf {:local/root "../javadbf/target/javadbf-2.0.0-SNAPSHOT.jar"}
         hiccup/hiccup {:mvn/version "1.0.5"}
         clj-time/clj-time {:mvn/version "0.15.2"}
         cljfx/cljfx {:mvn/version "1.9.3" ;;1.7.17

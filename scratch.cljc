@@ -415,8 +415,6 @@ find . -name "*.DBF" -exec grep -l TVA12 '{}' \;
 
 (import '[com.linuxense.javadbf DBFWriter DBFReader])
 (require '[clojure.java.io :as io]
-         '[hiccup.core :refer [html]]
-         '[hiccup.util :as hu]
          '[clojure.string :as s]
          '[clj-time.core :as ct]
          '[clj-time.coerce :as ctc]
@@ -426,10 +424,6 @@ find . -name "*.DBF" -exec grep -l TVA12 '{}' \;
 
 (defn round-double9 [^Double x]
   (Double. ^String (cl-format nil "~,9f" x)))
-
-
-(def date-fmt (ctf/formatter "MM/dd/yy"))
-(defn format-date [dt] (ctf/unparse date-fmt dt))
 
 
 (defn timestamp2 [dt]
@@ -467,8 +461,6 @@ find . -name "*.DBF" -exec grep -l TVA12 '{}' \;
       (-> (swap! dt #(ct/plus % (ct/seconds 2)))
           (timestamp)))))
 
-(def next-ts (timestamp-fn (ct/now)))
-
 
 (def csv-data (slurp "dump/inv/inv.csv"))
 
@@ -490,6 +482,7 @@ find . -name "*.DBF" -exec grep -l TVA12 '{}' \;
 
 (first data)
 [1864 "Clame aparat legat" 1 "70" "1212.078"]
+
 
 
 
@@ -554,8 +547,6 @@ find . -name "*.DBF" -exec grep -l TVA12 '{}' \;
 
 (def wtr (DBFWriter. (io/file path)))
 ;;(.setFields wtr (get-fields s215-path))
-
-
 
 ;; old
 #_(with-open [rdr (DBFReader. (io/input-stream s215-path))]
@@ -694,6 +685,9 @@ find . -name "*.DBF" -exec grep -l TVA12 '{}' \;
        (->> (into-array Object (map #(m %) s902-fields))
             (.addRecord wtr))
        (recur rst)))))
+
+
+
 
 
 

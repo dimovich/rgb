@@ -69,7 +69,7 @@
 
 
 
-(defn materiale-screen-items [dir-paths]
+(defn materiale-dvp-screen-items [dir-paths]
   (when-let [month-dir (u/some-paths dir-paths mat/prereqs)]
     (let [output-file (mat/get-output-file month-dir)]
       (cond-> []
@@ -86,6 +86,22 @@
 
 
 
+(defn materiale-ddp-screen-items [dir-paths]
+  (when-let [month-dir (u/some-paths dir-paths mat/prereqs)]
+    (let [output-file (mat/get-output-file2 month-dir :ddp)]
+      (cond-> []
+        month-dir
+        (conj {:text "Creare"
+               :fn (fn []
+                     (mat/gen2 month-dir :ddp output-file)
+                     (alert "Documentul a fost creat."))})
+
+        (.exists ^File output-file)
+        (conj {:text "Deschide"
+               :fn (fn []
+                     (u/open-explorer output-file))})))))
+
+
 
 
 
@@ -94,8 +110,10 @@
     :children-fn #(ipc21-screen-items dir-paths)}
    {:text "Creditori"
     :children-fn #(creditori-screen-items dir-paths)}
-   {:text "Materiale DP"
-    :children-fn #(materiale-screen-items dir-paths)}])
+   {:text "Materiale D.V.P."
+    :children-fn #(materiale-dvp-screen-items dir-paths)}
+   {:text "Materiale D.D.P."
+    :children-fn #(materiale-ddp-screen-items dir-paths)}])
 
 
 

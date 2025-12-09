@@ -39,15 +39,22 @@
 
 
 (def accounts-to-gen
-  ["21110" "21130" "21140" "21160"
-   "21170" "21190" "21310"])
+  ["21110" "21130" "21140" "21150" "21160"
+   "21170" "21190" "21310" "21710" "21610"])
 
+
+(def owner-id {:dvp 3
+               :ddp 1311})
 
 (def s008-xf (comp (map (partial u/row-fields s008-fields))
                    (map (juxt :account :name))))
 
 (def s215-xf (comp (map (partial u/row-fields s215-fields))
                    (filter (comp (partial = 3) :owner-id))))
+
+(defn s215-xf2 [owner]
+  (comp (map (partial u/row-fields s215-fields))
+        (filter (comp (partial = (owner-id owner)) :owner-id))))
 
 
 
@@ -56,6 +63,13 @@
   ([^File root] (get-output-file root output-path-fmt))
   ([^File root fmt] (->> (format fmt (.getName root))
                          (io/file root))))
+
+
+(defn get-output-file2
+  ([^File root] (get-output-file2 root :dvp output-path-fmt))
+  ([^File root owner] (get-output-file2 root owner output-path-fmt))
+  ([^File root owner fmt] (->> (format fmt (str (s/upper-case (name owner)) "_" (.getName root)))
+                               (io/file root))))
 
 
 
@@ -162,6 +176,57 @@
 
 
 
+(defn gen-markup2 [^File month-dir owner]
+  (let [s008 (->> (io/file month-dir s008-path)
+                  (u/dbf-rows)
+                  (into {} s008-xf))
+        
+        s215 (->> (io/file month-dir s215-path)
+                  (u/dbf-rows)
+                  (into [] (s215-xf2 owner))
+                  (group-by :account))]
+
+    (concat
+     ;; header
+     [(u/gen-month-markup month-dir)
+      (gen-owner-markup (first (val (first s215))))
+      (gen-row-markup {:uid "Cod"
+                       :name "Denumirea"
+                       :unit "Unit."
+                       :amount "Cant."
+                       :value "Suma (lei)"})]
+     ;; data       
+     (->> (filter s215 accounts-to-gen)
+          (mapcat
+           (fn [acc]
+             (->> (get s215 acc)
+                  (sort-by :name)
+                  (map gen-row-markup)
+                  (into [(gen-account-markup acc (s008 acc))]))))))))
+
+
+
+
+(defn gen2
+  ([^File month-dir] (gen2 month-dir :dvp))
+  ([^File month-dir owner] (gen2 month-dir owner (get-output-file2 month-dir owner)))
+  ([^File month-dir owner out]
+   (io/make-parents out)
+   (hp/->pdf
+    (html5 {:encoding "UTF-8"}
+      (into [:body {:style (str "font-family: consola;")}]
+            (gen-markup2 month-dir owner)))
+    out
+    {:page {:size :a4
+            :margin "0.7in"
+            :margin-box {:bottom-right-corner {:paging [:page]}}}
+     :styles
+     {:fonts [{:font-family "consola"
+               :src "consola.ttf"}]}})))
+
+
+
+
 
 
 
@@ -173,6 +238,9 @@
   (gen-markup (io/file "data/server/Bux2015/2022_07"))
 
 
+  (gen2 (io/file "data/server4/Bux2015/2025_12") :ddp)
+
+  (gen-markup2 (io/file "data/server4/Bux2015/2025_12") :ddp)
 
 
   (def s008
@@ -187,6 +255,14 @@
          (into [] s215-xf)
          (group-by :account)))
 
+  (def s215
+    (->> (io/file "data/server4/Bux2015/2025_12" s215-path)
+         (u/dbf-rows)
+         (into [] (s215-xf2 :dvp))
+         (group-by :account)))
+
+  (filter s215 accounts-to-gen)
+  
 
   (->> (get s215 "21110")
        (map #(select-keys % [:uid :name :unit :amount :value]))
